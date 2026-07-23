@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GoState Test Console</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --panel-strong: #111827;
+        --text: #111827;
+        --muted: #5f6877;
+        --line: #d8dde6;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --danger: #b42318;
+        --shadow: 0 18px 55px rgba(17, 24, 39, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.45;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 20px 0 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 4.35rem);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      h2,
+      h3 {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .subtitle {
+        max-width: 620px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .status {
+        min-width: 250px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        padding: 16px;
+        border-radius: 8px;
+      }
+
+      .status strong {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .status span {
+        display: block;
+        margin-top: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.9rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 0.85fr 1.15fr;
+        gap: 18px;
+        align-items: start;
+      }
+
+      section,
+      aside {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel {
+        padding: 20px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--text);
+        padding: 10px 11px;
+        font: inherit;
+      }
+
+      input[type="file"] {
+        padding: 10px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        padding: 10px 13px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--text);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #f9fafb;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.5rem;
+      }
+
+      pre {
+        min-height: 460px;
+        max-height: 68vh;
+        overflow: auto;
+        margin: 0;
+        border-radius: 8px;
+        background: var(--panel-strong);
+        color: #d1fae5;
+        padding: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+
+      @media (max-width: 860px) {
+        header,
+        .grid {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .status {
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>GoState Test Console</h1>
+          <p class="subtitle">
+            Bootstrap a deterministic test user, select local files, capture a workspace
+            footprint, and inspect the restore plan against the running API.
+          </p>
+        </div>
+        <div class="status">
+          <strong>API status</strong>
+          <span id="api-status">Not checked</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="panel stack">
+          <div class="row">
+            <button id="health-button" type="button">Check health</button>
+            <button id="bootstrap-button" type="button" class="secondary">Bootstrap user</button>
+          </div>
+
+          <label>
+            Owner user ID
+            <input id="owner-user-id" />
+          </label>
+
+          <label>
+            Tenant ID
+            <input id="tenant-id" />
+          </label>
+
+          <label>
+            Workspace ID
+            <input id="workspace-id" value="gostate-browser-test" />
+          </label>
+
+          <label>
+            Local files
+            <input id="file-input" type="file" multiple />
+          </label>
+
+          <div class="row">
+            <button id="capture-button" type="button">Capture context</button>
+            <button id="restore-button" type="button" class="secondary" disabled>
+              Restore plan
+            </button>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric"><span>Files</span><strong id="file-count">0</strong></div>
+            <div class="metric"><span>Env digests</span><strong id="env-count">0</strong></div>
+            <div class="metric"><span>Processes</span><strong id="process-count">0</strong></div>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <pre id="output">{}</pre>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const output = document.querySelector("#output");
+      const apiStatus = document.querySelector("#api-status");
+      const ownerInput = document.querySelector("#owner-user-id");
+      const tenantInput = document.querySelector("#tenant-id");
+      const workspaceInput = document.querySelector("#workspace-id");
+      const fileInput = document.querySelector("#file-input");
+      const restoreButton = document.querySelector("#restore-button");
+      const fileCount = document.querySelector("#file-count");
+      const envCount = document.querySelector("#env-count");
+      const processCount = document.querySelector("#process-count");
+      let lastStateId = null;
+
+      document.querySelector("#health-button").addEventListener("click", checkHealth);
+      document.querySelector("#bootstrap-button").addEventListener("click", bootstrapUser);
+      document.querySelector("#capture-button").addEventListener("click", captureContext);
+      restoreButton.addEventListener("click", restorePlan);
+
+      async function checkHealth() {
+        const data = await api("/health");
+        apiStatus.textContent = `${data.service} ${data.version}: ${data.status}`;
+        render(data);
+      }
+
+      async function bootstrapUser() {
+        const data = await api("/dev/test-user", { method: "POST", body: "" });
+        ownerInput.value = data.user.user_id;
+        tenantInput.value = data.user.tenant_id;
+        render(data);
+      }
+
+      async function captureContext() {
+        if (!ownerInput.value || !tenantInput.value) {
+          await bootstrapUser();
+        }
+
+        const payload = await buildPayload();
+        const data = await api("/contexts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        lastStateId = data.state_id;
+        restoreButton.disabled = false;
+        fileCount.textContent = String(data.file_count);
+        envCount.textContent = String(data.environment_count);
+        processCount.textContent = String(data.process_count);
+        render(data);
+      }
+
+      async function restorePlan() {
+        if (!lastStateId) return;
+        const data = await api(`/contexts/${lastStateId}/restore`, { method: "POST", body: "{}" });
+        render(data);
+      }
+
+      async function buildPayload() {
+        const files = await buildFiles();
+        const environment = await buildEnvironment();
+        const process = await buildProcess(environment);
+        const attributes = [
+          { key: "capture.source", value: "browser-test-console" },
+          { key: "browser.user_agent", value: navigator.userAgent.slice(0, 500) }
+        ];
+
+        const aiSummary = await summarizeWithPuter(files);
+        if (aiSummary) {
+          attributes.push({ key: "ai.summary", value: aiSummary.slice(0, 500) });
+          attributes.push({ key: "ai.model", value: "puter.js" });
+        }
+
+        return {
+          owner_user_id: ownerInput.value,
+          tenant_id: tenantInput.value,
+          workspace_id: workspaceInput.value || "gostate-browser-test",
+          payload: {
+            root_path: "browser://selected-files",
+            files,
+            environment,
+            processes: [process],
+            attributes
+          }
+        };
+      }
+
+      async function buildFiles() {
+        const selected = Array.from(fileInput.files || []).slice(0, 50);
+        if (selected.length === 0) {
+          const digest = await sha256("demo GoState browser capture");
+          return [{
+            path: "browser://demo/context.txt",
+            node_type: "file",
+            size_bytes: 28,
+            content_sha256: digest,
+            modified_at: new Date().toISOString()
+          }];
+        }
+
+        const entries = [];
+        for (const file of selected) {
+          const digest = await sha256(await file.text());
+          entries.push({
+            path: `browser://${file.webkitRelativePath || file.name}`,
+            node_type: "file",
+            size_bytes: file.size,
+            content_sha256: digest,
+            modified_at: new Date(file.lastModified).toISOString()
+          });
+        }
+        return entries;
+      }
+
+      async function buildEnvironment() {
+        return [
+          { name: "BROWSER_USER_AGENT", value_sha256: await sha256(navigator.userAgent), is_secret: false },
+          { name: "BROWSER_LANGUAGE", value_sha256: await sha256(navigator.language), is_secret: false },
+          { name: "BROWSER_PLATFORM", value_sha256: await sha256(navigator.platform || "unknown"), is_secret: false }
+        ];
+      }
+
+      async function buildProcess(environment) {
+        const fingerprint = environment.map((item) => `${item.name}:${item.value_sha256}`).join("|");
+        return {
+          pid: 1,
+          parent_pid: null,
+          command: "gostate browser test console",
+          command_sha256: await sha256("gostate browser test console"),
+          cwd: "browser://session",
+          environment_sha256: await sha256(fingerprint),
+          started_at: new Date().toISOString()
+        };
+      }
+
+      async function summarizeWithPuter(files) {
+        if (!window.puter || !window.puter.ai) return null;
+        try {
+          const fileNames = files.map((file) => file.path).slice(0, 8).join(", ");
+          const response = await window.puter.ai.chat(
+            `Summarize this GoState workspace capture for restore triage: ${fileNames}`
+          );
+          return String(response);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function sha256(value) {
+        const encoded = new TextEncoder().encode(value);
+        const hash = await crypto.subtle.digest("SHA-256", encoded);
+        return Array.from(new Uint8Array(hash))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, options);
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : {};
+        if (!response.ok) {
+          render(data);
+          throw new Error(data.detail || `request failed: ${response.status}`);
+        }
+        return data;
+      }
+
+      function render(value) {
+        output.textContent = JSON.stringify(value, null, 2);
+      }
+
+      checkHealth().catch((error) => {
+        apiStatus.innerHTML = `<span class="danger">${error.message}</span>`;
+      });
+    </script>
+  </body>
+</html>
